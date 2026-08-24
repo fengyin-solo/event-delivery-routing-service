@@ -3,6 +3,7 @@ package httpx
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 )
@@ -63,11 +64,19 @@ func InternalError(w http.ResponseWriter, message string) {
 	Error(w, http.StatusInternalServerError, 500, message)
 }
 
-// Decode 解析 JSON 请求体，限制 1MB，且只允许单个 JSON 对象。
+// maxBodySize 限制请求体不超过 1MB，避免恶意大请求体。
+const maxBodySize = 1 << 20
+
+// Decode 解析 JSON 请求体，限制 1MB，且只允许单个 JSON 值。
+// 多个 JSON 值拼接（如 `{"a":1}{"b":2}`）会被拒绝。
 func Decode(r *http.Request, dst interface{}) error {
-	dec := json.NewDecoder(r.Body)
+	dec := json.NewDecoder(http.MaxBytesReader(nil, r.Body, maxBodySize))
 	if err := dec.Decode(dst); err != nil {
 		return err
+	}
+	// 拒绝首个值之后的额外内容，防止拼接 JSON 注入多余记录。
+	if dec.More() {
+		return errors.New("请求体包含多个 JSON 值")
 	}
 	return nil
 }

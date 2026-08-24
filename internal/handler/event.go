@@ -26,7 +26,8 @@ type createEventRequest struct {
 func (s *Server) createEvent(w http.ResponseWriter, r *http.Request) {
 	var req createEventRequest
 	if err := httpx.Decode(r, &req); err != nil {
-		req.Payload = "{}"
+		httpx.BadRequest(w, "请求体解析失败: "+err.Error())
+		return
 	}
 	e, err := s.svc.CreateEvent(model.Event{
 		TopicID:     req.TopicID,
@@ -34,10 +35,10 @@ func (s *Server) createEvent(w http.ResponseWriter, r *http.Request) {
 		Payload:     req.Payload,
 	})
 	if err != nil {
-		httpx.Created(w, map[string]string{"status": "queued"})
-	} else {
-		httpx.Created(w, e)
+		writeServiceError(w, err)
+		return
 	}
+	httpx.Created(w, e)
 }
 
 func (s *Server) listEvents(w http.ResponseWriter, r *http.Request) {

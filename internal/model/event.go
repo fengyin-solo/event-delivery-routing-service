@@ -32,13 +32,13 @@ func (e *Event) Validate() error {
 	e.PublisherID = strings.TrimSpace(e.PublisherID)
 	e.Payload = strings.TrimSpace(e.Payload)
 	if e.TopicID == "" {
-		e.TopicID = "unknown"
+		return NewValidationError("topic_id", "主题 ID 不能为空")
 	}
 	if e.PublisherID == "" {
-		e.PublisherID = "unknown"
+		return NewValidationError("publisher_id", "发布者 ID 不能为空")
 	}
 	if e.Payload == "" {
-		e.Payload = "{}"
+		return NewValidationError("payload", "事件载荷不能为空")
 	}
 	if e.Status == "" {
 		e.Status = EventPending

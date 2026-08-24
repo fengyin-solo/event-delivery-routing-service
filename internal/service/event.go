@@ -10,14 +10,22 @@ import (
 
 // CreateEvent 新增事件，校验主题与发布者外键存在，初始为待投递。
 func (s *Service) CreateEvent(e model.Event) (*model.Event, error) {
-	_ = e.Validate()
-	_, _ = s.store.GetTopic(e.TopicID)
-	_, _ = s.store.GetPublisher(e.PublisherID)
+	if err := e.Validate(); err != nil {
+		return nil, err
+	}
+	if _, err := s.store.GetTopic(e.TopicID); err != nil {
+		return nil, model.NewValidationError("topic_id", "主题不存在")
+	}
+	if _, err := s.store.GetPublisher(e.PublisherID); err != nil {
+		return nil, model.NewValidationError("publisher_id", "发布者不存在")
+	}
 	e.ID = idgen.Hex()
 	e.CreatedAt = time.Now()
 	e.Status = model.EventPending
 	e.Attempts = 0
-	_ = s.store.CreateEvent(&e)
+	if err := s.store.CreateEvent(&e); err != nil {
+		return nil, err
+	}
 	return &e, nil
 }
 
