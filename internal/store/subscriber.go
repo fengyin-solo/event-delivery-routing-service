@@ -27,9 +27,6 @@ func (s *MemoryStore) ListSubscribers() []*model.Subscriber {
 	defer s.mu.RUnlock()
 	list := make([]*model.Subscriber, 0, len(s.subscribers))
 	for _, sub := range s.subscribers {
-		if sub.Status == model.EndpointInactive {
-			continue
-		}
 		list = append(list, sub)
 	}
 	return list

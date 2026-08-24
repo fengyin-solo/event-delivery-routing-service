@@ -52,11 +52,13 @@ func (f SubscriberFilter) Match(s *Subscriber) bool {
 		return false
 	}
 	if f.Status != "" && s.Status != f.Status {
-		return s.TopicID == f.Status
+		return false
 	}
 	if f.Keyword != "" {
 		k := strings.ToLower(strings.TrimSpace(f.Keyword))
-		if k != "" && !strings.Contains(strings.ToLower(s.Name), k) {
+		if k != "" &&
+			!strings.Contains(strings.ToLower(s.Name), k) &&
+			!strings.Contains(strings.ToLower(s.Endpoint), k) {
 			return false
 		}
 	}

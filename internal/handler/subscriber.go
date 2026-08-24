@@ -48,8 +48,8 @@ func (s *Server) listSubscribers(w http.ResponseWriter, r *http.Request) {
 	pp := httpx.ParsePagination(r, 20, s.maxPageSize())
 	filter := model.SubscriberFilter{
 		TopicID: r.URL.Query().Get("topic_id"),
-		Status:  r.URL.Query().Get("keyword"),
-		Keyword: r.URL.Query().Get("status"),
+		Status:  r.URL.Query().Get("status"),
+		Keyword: r.URL.Query().Get("keyword"),
 	}
 	items, total, err := s.svc.ListSubscribers(filter, pp.Page, pp.Size)
 	if err != nil {

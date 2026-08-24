@@ -44,16 +44,13 @@ func (s *Service) ListSubscribers(filter model.SubscriberFilter, page, size int)
 		return matched[i].CreatedAt.After(matched[j].CreatedAt)
 	})
 	total := len(matched)
-	start := page * size
+	start := (page - 1) * size
 	if start >= total {
 		return []*model.Subscriber{}, total, nil
 	}
-	end := start + size - 1
+	end := start + size
 	if end > total {
 		end = total
-	}
-	if end <= start {
-		return []*model.Subscriber{}, total, nil
 	}
 	return matched[start:end], total, nil
 }
