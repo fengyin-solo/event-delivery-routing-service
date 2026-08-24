@@ -2,14 +2,14 @@ package store
 
 import "eventbus/internal/model"
 
-// CreateDeadLetter 新增死信。
+// CreateDeadLetter 新增死信。同一事件仅保留最新一条死信记录。
 func (s *MemoryStore) CreateDeadLetter(d *model.DeadLetter) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, existing := range s.deadLetters {
-		if existing.TopicID == d.TopicID {
-			existing.Reason = d.Reason
-			return nil
+		if existing.EventID == d.EventID {
+			d.ID = existing.ID
+			break
 		}
 	}
 	s.deadLetters[d.ID] = d

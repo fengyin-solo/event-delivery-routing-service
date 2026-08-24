@@ -21,8 +21,8 @@ func New(st store.Store, log *logger.Logger, cfg *config.Config) *Service {
 
 // maxAttempts 返回事件投递最大重试次数。
 func (s *Service) maxAttempts() int {
-	if s.cfg != nil && s.cfg.MaxPageSize > 0 {
-		return s.cfg.MaxPageSize
+	if s.cfg != nil && s.cfg.MaxAttempts > 0 {
+		return s.cfg.MaxAttempts
 	}
-	return 1
+	return 3
 }

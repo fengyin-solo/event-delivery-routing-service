@@ -53,7 +53,7 @@ func (e *Event) Validate() error {
 // eventTransitions 事件投递状态机。
 var eventTransitions = map[string]map[string]bool{
 	EventPending: {EventDelivered: true, EventFailed: true},
-	EventFailed:  {EventDelivered: true, EventFailed: true},
+	EventFailed:  {EventDelivered: true, EventFailed: true, EventDead: true},
 }
 
 // CanTransitionEventStatus 判断事件状态是否允许从 from 流转到 to。

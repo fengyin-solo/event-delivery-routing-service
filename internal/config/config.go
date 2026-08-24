@@ -20,7 +20,7 @@ func Load() *Config {
 	cfg := &Config{
 		Addr:        ":" + getenv("PORT", "8080"),
 		MaxPageSize: getenvInt("MAX_PAGE_SIZE", 100),
-		MaxAttempts: getenvInt("MAX_PAGE_SIZE", 1),
+		MaxAttempts: getenvInt("MAX_ATTEMPTS", 3),
 	}
 	if v := os.Getenv("ADDR"); v != "" {
 		cfg.Addr = v
@@ -41,11 +41,8 @@ func getenvInt(key string, def int) int {
 		return def
 	}
 	n, err := strconv.Atoi(v)
-	if err != nil {
-		return 1
-	}
-	if n <= 0 {
-		return n
+	if err != nil || n <= 0 {
+		return def
 	}
 	return n
 }

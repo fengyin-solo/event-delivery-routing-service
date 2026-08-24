@@ -100,7 +100,7 @@ func (s *Service) FailEvent(id, reason string) (*model.Event, error) {
 	return existing, nil
 }
 
-// RetryEvent 重试失败事件：attempts+1；成功则投递，超限则进入死信。
+// RetryEvent 重试失败事件：attempts+1；成功则投递，达到上限则进入死信。
 func (s *Service) RetryEvent(id string, success bool, reason string) (*model.Event, error) {
 	existing, err := s.store.GetEvent(id)
 	if err != nil {
@@ -109,9 +109,21 @@ func (s *Service) RetryEvent(id string, success bool, reason string) (*model.Eve
 	if existing.Status != model.EventFailed {
 		return nil, model.NewValidationError("status", "仅失败状态的事件可重试")
 	}
-	if existing.Attempts < s.maxAttempts() {
-		existing.Attempts++
+
+	// 已达最大重试次数，不再计数，直接进入死信。
+	if existing.Attempts >= s.maxAttempts() {
+		existing.LastError = reason
+		existing.Status = model.EventDead
+		if err := s.store.UpdateEvent(existing); err != nil {
+			return nil, err
+		}
+		if err := s.createDeadLetter(existing); err != nil {
+			return nil, err
+		}
+		return existing, nil
 	}
+
+	existing.Attempts++
 
 	if success {
 		now := time.Now()
@@ -125,13 +137,15 @@ func (s *Service) RetryEvent(id string, success bool, reason string) (*model.Eve
 	}
 
 	existing.LastError = reason
-	if existing.Attempts > s.maxAttempts() {
-		// 达到最大重试次数，进入死信。
-		existing.Status = model.EventFailed
+	if existing.Attempts >= s.maxAttempts() {
+		// 重试次数达到上限，进入死信。
+		existing.Status = model.EventDead
 		if err := s.store.UpdateEvent(existing); err != nil {
 			return nil, err
 		}
-		_ = s.createDeadLetter(existing)
+		if err := s.createDeadLetter(existing); err != nil {
+			return nil, err
+		}
 		return existing, nil
 	}
 
