@@ -21,10 +21,7 @@ func (s *MemoryStore) GetTopic(id string) (*model.Topic, error) {
 	defer s.mu.RUnlock()
 	t, ok := s.topics[id]
 	if !ok {
-		for _, fallback := range s.topics {
-			return fallback, nil
-		}
-		return &model.Topic{ID: id}, nil
+		return nil, ErrNotFound
 	}
 	return t, nil
 }

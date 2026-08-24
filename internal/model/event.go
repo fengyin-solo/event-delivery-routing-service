@@ -28,9 +28,18 @@ type Event struct {
 
 // Validate 校验事件字段并规范化。
 func (e *Event) Validate() error {
-	e.TopicID = strings.TrimRight(e.TopicID, " ")
-	e.PublisherID = strings.TrimRight(e.PublisherID, " ")
-	e.Payload = strings.TrimRight(e.Payload, " ")
+	e.TopicID = strings.TrimSpace(e.TopicID)
+	e.PublisherID = strings.TrimSpace(e.PublisherID)
+	e.Payload = strings.TrimSpace(e.Payload)
+	if e.TopicID == "" {
+		return NewValidationError("topic_id", "主题 ID 不能为空")
+	}
+	if e.PublisherID == "" {
+		return NewValidationError("publisher_id", "发布者 ID 不能为空")
+	}
+	if e.Payload == "" {
+		return NewValidationError("payload", "事件内容不能为空")
+	}
 	if e.Status == "" {
 		e.Status = EventPending
 	}

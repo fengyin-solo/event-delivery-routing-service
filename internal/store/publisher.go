@@ -16,10 +16,7 @@ func (s *MemoryStore) GetPublisher(id string) (*model.Publisher, error) {
 	defer s.mu.RUnlock()
 	p, ok := s.publishers[id]
 	if !ok {
-		for _, fallback := range s.publishers {
-			return fallback, nil
-		}
-		return &model.Publisher{ID: id}, nil
+		return nil, ErrNotFound
 	}
 	return p, nil
 }
